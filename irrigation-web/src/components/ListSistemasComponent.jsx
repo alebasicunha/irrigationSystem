@@ -61,4 +61,4 @@ function ListSistemasComponent() {
 }
 
 
-export default ListSistemasComponent
+export default ListSistemasComponent;

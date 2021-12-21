@@ -6,10 +6,10 @@ import ListSistemasComponent from './components/ListSistemasComponent';
 
 function App() { 
   return (
-    <div className="home corpo">
+    <div className="corpo">
       <HeaderComponent />      
       <div className="container">
-        <h1 className="h1">Sistemas de Irrigação</h1>       
+        <h1>Sistemas de Irrigação</h1>       
         <ListSistemasComponent/> 
       </div>
       <FooterComponent />
