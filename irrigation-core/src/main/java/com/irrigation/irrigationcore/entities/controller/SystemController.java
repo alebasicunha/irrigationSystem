@@ -8,7 +8,6 @@ import com.irrigation.irrigationcore.entities.IrrigationSystem;
 import com.irrigation.irrigationcore.exceptions.ResourceNotFoundException;
 import com.irrigation.irrigationcore.repository.IrrigationSystemsRepository;
 
-import org.apache.tomcat.jni.Mmap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -54,7 +53,7 @@ public class SystemController {
         IrrigationSystem system = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Sistema " + id + "nao existe"));
         system.setNome(novoSystem.getNome());
         system.setDataLeitura(novoSystem.getDataLeitura());
-        system.setExternalId(novoSystem.getExternalId());
+        system.setMacAddress(novoSystem.getMacAddress());
         system.setUmidade(novoSystem.getUmidade());
 
         IrrigationSystem updateSystem = repository.save(system);

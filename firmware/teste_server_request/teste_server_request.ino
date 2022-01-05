@@ -1,8 +1,26 @@
+#include <Arduino_JSON.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPClient.h>
 #include <ESP8266WiFi.h>
 
 #define TIMEOUT  5000  
+#define PERIODO_DEFAULT 1;  
+#define LIMITE_MINIMO 50;  
+#define LIMITE_MAXIMO 80;  
+
+int macAddr;
+int periodoMedicao = PERIODO_DEFAULT; 
+int limiteMinimo = LIMITE_MINIMO;
+int limiteMaximo = LIMITE_MAXIMO;
+float umidadeAtual;
+
+struct dadosDoSistema {
+  String macAddr;
+  int periodoMedicao = PERIODO_DEFAULT; 
+  int limiteMinimo = LIMITE_MINIMO;
+  int limiteMaximo = LIMITE_MAXIMO;
+  float umidadeAtual;
+};
 
 //login e senha do wi-fi
 const char *ssid = "Sei la";         // replace with your wifi ssid and wpa2 key
@@ -19,6 +37,8 @@ void setup()
   delay(10);
 
   //conectar ao wi-fi
+  Serial.print("MAC: ");
+  Serial.println(WiFi.macAddress());
   Serial.println("Connecting to ");
   Serial.println(ssid);
   WiFi.begin(ssid, pass);
@@ -31,7 +51,7 @@ void setup()
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP()); //IP local do ESP8266 na rede wifi
 
-  server.on("/body", handleBody); //Especifica qual funcao sera chamada qdo recebermos um request
+  server.on("/atualizarDados", atualizarDados); //Especifica qual funcao sera chamada qdo recebermos um request
  
   server.begin(); //Start the server
   Serial.println("Server listening");
@@ -39,6 +59,12 @@ void setup()
 
 void loop()
 {
+  server.handleClient(); //Handling of incoming requests
+  // 1 sec delay
+  delay(1000);
+}
+
+float lerSensor() {
   //  Valor lido x Umidade 
   //   1024 --------  0%
   //    0   -------- 100%
@@ -46,30 +72,28 @@ void loop()
   if (isnan(h))
   {
     Serial.println("Failed to read from sensor!");
-    return;
+    return -1;
   }
   
   Serial.print("Humidity Level: ");
   Serial.println(h);
-
-  server.handleClient(); //Handling of incoming requests
-  // 1 sec delay
-  delay(1000);
+  return h;
 }
 
-void handleBody() { //Handler for the body path
+void atualizarDados() { //Handler para o atualizarDados
  
-  if (server.hasArg("plain")== false){ //Check if body received
+  //if (server.hasArg("plain")== false){ //Check if body received
+  //      server.send(200, "text/plain", "Body not received");
+  //      return;
+  //}
 
-        server.send(200, "text/plain", "Body not received");
-        return;
+  //String message = "Body received:\n";
+  //       message += server.arg("plain");
+  //       message += "\n";
+  //Serial.println(message);
 
-  }
+  String resposta = "{\"umidade\":\"" + String(lerSensor(), 2) + "\"}";
 
-  String message = "Body received:\n";
-         message += server.arg("plain");
-         message += "\n";
-
-  server.send(200, "text/plain", message);
-  Serial.println(message);
+  server.send(200, "text/plain", resposta);
+  Serial.println(resposta);
 }

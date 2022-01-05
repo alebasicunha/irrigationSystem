@@ -15,8 +15,8 @@ public class IrrigationSystem {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private long id;
 	
-    @Column(name = "external_id")
-	private Long externalId;
+    @Column(name = "mac_address")
+	private String macAddress;
 
 	@Column(name = "nome")
 	private String nome;
@@ -25,18 +25,28 @@ public class IrrigationSystem {
 	private Long dataLeitura;
 	
 	@Column(name = "umidade")
-	private Integer umidade;
+	private Float umidade;
+
+    @Column(name = "limite_minimo")
+	private Integer limiteMinimo;
+
+    @Column(name = "limite_maximo")
+	private Integer limiteMaximo;
+
+    @Column(name = "periodo_medicao")
+	private Integer periodoMedicao;
 	
 	public IrrigationSystem() {
 		
 	}
 
-    public IrrigationSystem(Long externalId, String nome, Long dataLeitura, Integer umidade) {
-        super();
-        this.externalId = externalId;
+    public IrrigationSystem(String nome, Long dataLeitura, Integer limiteMinimo,
+            Integer limiteMaximo, Integer periodoMedicao) {
         this.nome = nome;
         this.dataLeitura = dataLeitura;
-        this.umidade = umidade;
+        this.limiteMinimo = limiteMinimo;
+        this.limiteMaximo = limiteMaximo;
+        this.periodoMedicao = periodoMedicao;
     }
 
     public long getId() {
@@ -47,12 +57,12 @@ public class IrrigationSystem {
         this.id = id;
     }
 
-    public Long getExternalId() {
-        return externalId;
+    public String getMacAddress() {
+        return macAddress;
     }
 
-    public void setExternalId(Long externalId) {
-        this.externalId = externalId;
+    public void setMacAddress(String macAddress) {
+        this.macAddress = macAddress;
     }
 
     public String getNome() {
@@ -71,11 +81,35 @@ public class IrrigationSystem {
         this.dataLeitura = dataLeitura;
     }
 
-    public Integer getUmidade() {
+    public Float getUmidade() {
         return umidade;
     }
 
-    public void setUmidade(Integer umidade) {
+    public void setUmidade(Float umidade) {
         this.umidade = umidade;
     }
+
+    public Integer getLimiteMinimo() {
+        return limiteMinimo;
+    }
+
+    public void setLimiteMinimo(Integer limiteMinimo) {
+        this.limiteMinimo = limiteMinimo;
+    }
+
+    public Integer getLimiteMaximo() {
+        return limiteMaximo;
+    }
+
+    public void setLimiteMaximo(Integer limiteMaximo) {
+        this.limiteMaximo = limiteMaximo;
+    }
+
+    public Integer getPeriodoMedicao() {
+        return periodoMedicao;
+    }
+
+    public void setPeriodoMedicao(Integer periodoMedicao) {
+        this.periodoMedicao = periodoMedicao;
+    }  
 }

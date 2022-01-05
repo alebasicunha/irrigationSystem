@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import $ from 'jquery'
+import service from './services/NodeMCUService';
 
 function ListSistemasComponent() {
     const apiUrl = 'https://api.thingspeak.com/channels/1554431/fields/1.json?results=1';
@@ -23,36 +23,18 @@ function ListSistemasComponent() {
         });
     }, []);
 
-    function onClickEditar(id) {
-        let data = {
-            "device": id,
-            "status": "Testeee"
-        }
-
-        $.ajax({
-            type: "POST",
-            url: "http://localhost:8080/api/nodeMCU/editarDados",
-            //data: data,
-            success: function (result) {
-                console.log(result);
-            },
-            error: function () {
-                console.dir("Erro");
-            }
+    function onClickAtualizar(id) {
+        service.atualizar(id).then(function(json) {
+            console.log(json); 
         });
     }
 
+    function onClickEditar(id) {
+        service.editar(id);
+    }
+
     function onClickDeletar(id) {
-        $.ajax({
-            type: "DELETE",
-            url: "http://localhost:8080/api/v1/systems/" + id,
-            success: function (result) {
-                console.log(result);
-            },
-            error: function (result) {
-                console.dir("Erro:" + result);
-            }
-        });
+        service.deletar(id);
     }
 
     function renderLinha() {
@@ -63,7 +45,7 @@ function ListSistemasComponent() {
                         <td> {sistema.data} </td>
                         <td> {sistema.umidade}% </td>
                         <td>
-                            <button className="btn btn-info btn-secondary"> Atualizar </button>
+                            <button onClick={() => onClickAtualizar(sistema.id)} className="btn btn-info btn-secondary"> Atualizar </button>
                             <button onClick={() => onClickEditar(sistema.id)} style={{marginLeft: "10px"}} className="btn btn-info btn-secondary"> Editar </button>
                             <button style={{marginLeft: "10px"}} className="btn btn-info btn-secondary"> Regar </button>
                             <button onClick={() => onClickDeletar(sistema.id)} style={{marginLeft: "10px"}} className="btn btn-danger"> Deletar </button>
