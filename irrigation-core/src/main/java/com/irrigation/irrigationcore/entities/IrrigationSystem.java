@@ -35,6 +35,8 @@ public class IrrigationSystem {
 
     @Column(name = "periodo_medicao")
 	private Integer periodoMedicao;
+
+    //TODO colocar porta no banco de dados: ex 80
 	
 	public IrrigationSystem() {
 		

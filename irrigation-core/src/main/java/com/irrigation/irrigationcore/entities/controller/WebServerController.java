@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("api/v1")
-public class SystemController {
+public class WebServerController {
 
     @Autowired
     IrrigationSystemsRepository repository;
