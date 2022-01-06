@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
-import service from './services/NodeMCUService';
+import fwService from './services/NodeMCUService';
+import dbService from './services/WebServerService';
 
 class ListSistemasComponent extends Component {
 
@@ -7,57 +8,74 @@ class ListSistemasComponent extends Component {
         super(props)
 
         this.state = {
-            sistemas: [
-                   {id: null, data: '', umidade: ''},
-                ]
+            sistemas: []
         }
-        this.atualizar = this.atualizarStateSistema.bind(this);
+        this.adicionar = this.adicionar.bind(this);
+        this.atualizarPorId = this.atualizarPorId.bind(this);
+        this.editarPorId = this.editarPorId.bind(this);
+        this.regarPorId = this.regarPorId.bind(this);
+        this.deletarPorId = this.deletarPorId.bind(this);
     }
+
+    //TODO fazer receber automaticamente a cada 1h do esp8266 depois de adicionar (ou mesmo sem adicionar).
 
     componentDidMount(){
-        service.atualizar().then((res) => {
-            let resJson = JSON.parse(res);
-            console.log(resJson); 
-            this.setState({ sistemas: this.atualizarStateSistema(resJson) });                
-        });
+        this.buscarTodos();
     } 
 
-    atualizarLinha(id) { 
-        service.atualizar().then((res) => {
-            let resJson = JSON.parse(res);
-            console.log(resJson); 
-            this.setState({ sistemas: this.atualizarStateSistema(resJson) });                
+    buscarTodos() {
+        dbService.buscarTodos().then((res) => {
+            console.log(res);
+            this.setState({ sistemas: res.data });                
         });
     }
 
-    atualizarStateSistema(resJson) {
-        return [{
-            id: resJson.macAddress,
-            umidade: resJson.umidade,
-            data: new Date().toISOString()
-        }]
+    //TODO add modal para colocar a porta
+    //TODO verificar se ja nao existe com o mesmo MAC
+    adicionar() {         
+        let porta = '80';
+        fwService.buscar(porta).then((res) => {
+            let resJson = JSON.parse(res);
+            resJson = {...resJson, dataLeitura: new Date().getTime()};
+            console.log(resJson);
+            dbService.salvar(resJson).then(() => this.buscarTodos());             
+        })               
     }
 
-    onClickEditar(id) {
-        service.editar(id);
+    //busca do esp8266 os valores atualizados e atualiza no banco
+    atualizarPorId(id, porta) { 
+        fwService.buscar(porta).then((res) => {
+            let resJson = JSON.parse(res);
+            console.log(resJson); 
+            dbService.atualizar(id, resJson).then(() => this.buscarTodos());             
+        });
     }
 
-    onClickDeletar(id) {
-        service.deletar(id);
+    //TODO modal para editar tudo menos MAC e porta
+    editarPorId(id) {
+    }
+
+    regarPorId(id, porta) {
+    }
+
+    deletarPorId(id) {
+        dbService.deletar(id).then( res => {
+            this.setState({sistemas: this.state.sistemas.filter(sistema => sistema.id !== id)});
+        });
     }
 
     renderLinha() {
         const linha = this.state.sistemas.map( sistema =>
             (
                 <tr key = {sistema.id}>
-                        <td> {sistema.id} </td>   
-                        <td> {sistema.data} </td>
+                        <td> {sistema.nome ? sistema.nome : sistema.macAddress} </td>   
+                        <td> {sistema.dataLeitura} </td>
                         <td> {sistema.umidade}% </td>
                         <td>
-                            <button onClick={() => this.atualizarLinha(sistema.id)} className="btn btn-info btn-secondary"> Atualizar </button>
-                            <button onClick={() => this.onClickEditar(sistema.id)} style={{marginLeft: "10px"}} className="btn btn-info btn-secondary"> Editar </button>
-                            <button style={{marginLeft: "10px"}} className="btn btn-info btn-secondary"> Regar </button>
-                            <button onClick={() => this.onClickDeletar(sistema.id)} style={{marginLeft: "10px"}} className="btn btn-danger"> Deletar </button>
+                            <button onClick={() => this.atualizarPorId(sistema.id, sistema.porta)} className="btn btn-info btn-secondary"> Atualizar </button>
+                            <button onClick={() => this.editarPorId(sistema.id)} style={{marginLeft: "10px"}} className="btn btn-info btn-secondary"> Editar </button>
+                            <button onClick={() => this.regarPorId(sistema.id, sistema.porta)} style={{marginLeft: "10px"}} className="btn btn-info btn-secondary"> Regar </button>
+                            <button onClick={() => this.deletarPorId(sistema.id)} style={{marginLeft: "10px"}} className="btn btn-danger"> Deletar </button>
                         </td>
                 </tr>
             ));
@@ -67,6 +85,9 @@ class ListSistemasComponent extends Component {
     render() {
         return (
             <div>
+                <div className = "row">
+                    <button onClick={() => this.adicionar()} className="btn btn-info btn-secondary"> Adicionar </button>
+                </div>
                 <div className = "row">
                     <table className = "table table-striped table-bordered">
                         <thead>

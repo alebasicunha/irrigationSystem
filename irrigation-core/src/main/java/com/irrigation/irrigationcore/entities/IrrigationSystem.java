@@ -36,19 +36,21 @@ public class IrrigationSystem {
     @Column(name = "periodo_medicao")
 	private Integer periodoMedicao;
 
-    //TODO colocar porta no banco de dados: ex 80
+    @Column(name = "porta")
+	private Integer porta;
 	
 	public IrrigationSystem() {
 		
 	}
 
     public IrrigationSystem(String nome, Long dataLeitura, Integer limiteMinimo,
-            Integer limiteMaximo, Integer periodoMedicao) {
+            Integer limiteMaximo, Integer periodoMedicao, Integer porta) {
         this.nome = nome;
         this.dataLeitura = dataLeitura;
         this.limiteMinimo = limiteMinimo;
         this.limiteMaximo = limiteMaximo;
         this.periodoMedicao = periodoMedicao;
+        this.porta = porta;
     }
 
     public long getId() {
@@ -113,5 +115,13 @@ public class IrrigationSystem {
 
     public void setPeriodoMedicao(Integer periodoMedicao) {
         this.periodoMedicao = periodoMedicao;
+    }
+
+    public Integer getPorta() {
+        return porta;
+    }
+
+    public void setPorta(Integer porta) {
+        this.porta = porta;
     }  
 }
