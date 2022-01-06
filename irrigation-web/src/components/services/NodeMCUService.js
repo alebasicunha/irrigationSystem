@@ -9,7 +9,7 @@ class NodeMCUService {
                     type: "POST",
                     url: NodeMCUService.BASE_URL + "/atualizar",
                     success: function (result) {
-                        return JSON.parse(result);
+                        return result;
                     },
                     error: function (result) {
                         console.dir("Erro");
