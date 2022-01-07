@@ -128,5 +128,5 @@ String toJson() {
   String fechaJson = "}";
   String v = ",";
 
-  return abreJson + mac + v + porta + v + periodoMedicao + v + limiteMinimo + v + limiteMaximo + v + umidade + fechaJson; 
+  return abreJson + mac + v + ip + v + periodoMedicao + v + limiteMinimo + v + limiteMaximo + v + umidade + fechaJson; 
 }
