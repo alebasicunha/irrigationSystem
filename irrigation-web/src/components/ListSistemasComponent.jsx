@@ -1,4 +1,5 @@
-import React, { Component } from 'react'
+import React, { Component, useState } from 'react'
+import AlertaErro from './AlertaErro';
 import fwService from './services/NodeMCUService';
 import dbService from './services/WebServerService';
 
@@ -8,7 +9,8 @@ class ListSistemasComponent extends Component {
         super(props)
 
         this.state = {
-            sistemas: []
+            sistemas: [],
+            alertaErro: false,
         }
         this.adicionar = this.adicionar.bind(this);
         this.atualizarPorId = this.atualizarPorId.bind(this);
@@ -17,7 +19,12 @@ class ListSistemasComponent extends Component {
         this.deletarPorId = this.deletarPorId.bind(this);
     }
 
-    //TODO fazer receber automaticamente a cada 1h do esp8266 depois de adicionar (ou mesmo sem adicionar).
+    //TODO fazer receber automaticamente a cada 1h do esp8266 depois de adicionar.
+            //TODO fazer ele regar automaticamente (vinculado com a requisicao feita pelo cliente - site)
+    //TODO editar (modal com formularios) - nao editar: mac, ip.
+    //TODO regar
+    //TODO alerta de erro qdo nao puder salvar, atualizar, editar, regar, etc.
+    //TODO add modal para colocar listar os IPs dos dispositivos conectados a rede wifi    
 
     componentDidMount(){
         this.buscarTodos();
@@ -35,19 +42,23 @@ class ListSistemasComponent extends Component {
     }
 
     salvarNovo(sistema) {
-        if(!this.buscarPorMacAddress(sistema.macAddress)) {
-            dbService.salvar(sistema).then(() => { 
-                this.buscarTodos()
-            }); 
-        } else {
-            console.log("Erro ao salvar: um dispositovo com MacAddress " + sistema.macAddress + " já existe no banco.");
-        }    
+        this.buscarPorMacAddress(sistema).then((res) => {
+            console.dir(res.data.length);
+            if(!res.data || this.state.sistemas.length === 0) {
+                console.log("Salvou");
+                dbService.salvar(sistema).then(() => { 
+                    this.buscarTodos()
+                }); 
+            } else {
+                this.setState({alertaErro: true})
+                console.log("Erro ao salvar: um dispositovo com MacAddress " + sistema.macAddress + " já existe no banco.");
+            }  
+        });
     }
 
-    //TODO add modal para colocar listar os IPs dos dispositivos conectados a rede wifi
-    //TODO verificar se ja nao existe com o mesmo MAC
+    
     adicionar() {         
-        let ip = '192.168.15.78'; //ip+porta 80 (porta 80 sera fixa)
+        let ip = '192.168.15.78'; //porta 80 eh fixa
         fwService.buscar(ip).then((res) => {
             let resJson = JSON.parse(res);
             resJson = {...resJson, dataLeitura: new Date().getTime()};
@@ -60,16 +71,16 @@ class ListSistemasComponent extends Component {
     atualizarPorId(id, ip) { 
         fwService.buscar(ip).then((res) => {
             let resJson = JSON.parse(res);
+            resJson = {...resJson, dataLeitura: new Date().getTime()};
             console.log(resJson); 
             dbService.atualizar(id, resJson).then(() => this.buscarTodos());             
         });
     }
 
-    //TODO modal para editar tudo menos MAC e porta
     editarPorId(id) {
     }
 
-    regarPorId(id, caminho) {
+    regarPorId(id, ip) {
     }
 
     deletarPorId(id) {

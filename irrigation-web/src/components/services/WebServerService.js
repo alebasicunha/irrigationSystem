@@ -11,7 +11,7 @@ class WebServerService {
     }
 
     buscarPorMacAddress(mac) {
-        return axios.get(WebServerService.BASE_URL, mac);
+        return axios.get(WebServerService.BASE_URL + '/mac/' + mac);
     }
 
     salvar(sistema) {  

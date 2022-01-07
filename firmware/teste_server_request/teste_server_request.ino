@@ -21,7 +21,7 @@ ESP8266WebServer server(PORTA_DEFAULT);
 
 struct DadosDoSistema {
   String macAddr;
-  int ip;
+  String ip;
   int periodoMedicao; 
   int limiteMinimo;
   int limiteMaximo;
@@ -72,7 +72,7 @@ void inicializaEstruturaDados() {
   
   dadosDoSistema = {
     WiFi.macAddress(),
-    WiFi.localIP(),
+    WiFi.localIP().toString(),
     PERIODO_DEFAULT,
     LIMITE_MINIMO,
     LIMITE_MAXIMO,

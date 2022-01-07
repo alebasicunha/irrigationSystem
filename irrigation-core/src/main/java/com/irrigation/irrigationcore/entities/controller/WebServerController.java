@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.sound.sampled.EnumControl;
+
 import com.irrigation.irrigationcore.entities.IrrigationSystem;
 import com.irrigation.irrigationcore.exceptions.ResourceNotFoundException;
 import com.irrigation.irrigationcore.repository.IrrigationSystemsRepository;
@@ -47,11 +49,15 @@ public class WebServerController {
         return ResponseEntity.ok(system);
     }
 
-    //get system by id
-    @GetMapping("/systems/{mac}")
+    //get system by mac
+    @GetMapping("/systems/mac/{mac}")
     public IrrigationSystem getSystemByMacAddress(@PathVariable String mac) {
         List<IrrigationSystem> sistemas = repository.findAll();
-        return sistemas.stream().filter(s -> s.getMacAddress().equals(mac)).findFirst().orElse(null);       
+        System.out.println("Sistemas:"+ sistemas.size());
+
+        IrrigationSystem encontrado = sistemas.stream().filter(s -> s.getMacAddress().equals(mac)).findFirst().orElse(null);
+        System.out.println("Mac:"+ mac);
+        return encontrado;       
     }
 
     //update
