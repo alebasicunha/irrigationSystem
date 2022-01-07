@@ -36,21 +36,21 @@ public class IrrigationSystem {
     @Column(name = "periodo_medicao")
 	private Integer periodoMedicao;
 
-    @Column(name = "porta")
-	private Integer porta;
+    @Column(name = "ip")
+	private String ip;
 	
 	public IrrigationSystem() {
 		
 	}
 
     public IrrigationSystem(String nome, Long dataLeitura, Integer limiteMinimo,
-            Integer limiteMaximo, Integer periodoMedicao, Integer porta) {
+            Integer limiteMaximo, Integer periodoMedicao, String ip) {
         this.nome = nome;
         this.dataLeitura = dataLeitura;
         this.limiteMinimo = limiteMinimo;
         this.limiteMaximo = limiteMaximo;
         this.periodoMedicao = periodoMedicao;
-        this.porta = porta;
+        this.ip = ip;
     }
 
     public long getId() {
@@ -117,11 +117,11 @@ public class IrrigationSystem {
         this.periodoMedicao = periodoMedicao;
     }
 
-    public Integer getPorta() {
-        return porta;
+    public String getIp() {
+        return ip;
     }
 
-    public void setPorta(Integer porta) {
-        this.porta = porta;
+    public void setIp(String ip) {
+        this.ip = ip;
     }  
 }

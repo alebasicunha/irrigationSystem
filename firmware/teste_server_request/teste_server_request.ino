@@ -21,7 +21,7 @@ ESP8266WebServer server(PORTA_DEFAULT);
 
 struct DadosDoSistema {
   String macAddr;
-  int porta;
+  int ip;
   int periodoMedicao; 
   int limiteMinimo;
   int limiteMaximo;
@@ -72,7 +72,7 @@ void inicializaEstruturaDados() {
   
   dadosDoSistema = {
     WiFi.macAddress(),
-    80,
+    WiFi.localIP(),
     PERIODO_DEFAULT,
     LIMITE_MINIMO,
     LIMITE_MAXIMO,
@@ -120,7 +120,7 @@ void atualizarDados() {
 String toJson() {
   String abreJson = "{";
   String mac = "\"macAddress\":\"" + dadosDoSistema.macAddr + "\"";
-  String porta = "\"porta\":\"" + String(dadosDoSistema.porta) + "\"";
+  String ip = "\"ip\":\"" + String(dadosDoSistema.ip) + "\"";
   String periodoMedicao = "\"periodoMedicao\":\"" + String(dadosDoSistema.periodoMedicao) + "\"";
   String limiteMinimo = "\"limiteMinimo\":\"" + String(dadosDoSistema.limiteMinimo) + "\"";
   String limiteMaximo = "\"limiteMaximo\":\"" + String(dadosDoSistema.limiteMaximo) + "\"";
