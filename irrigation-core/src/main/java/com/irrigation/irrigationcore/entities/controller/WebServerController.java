@@ -28,23 +28,30 @@ public class WebServerController {
     @Autowired
     IrrigationSystemsRepository repository;
 
-    //get all systems
-    @GetMapping("/systems")
-    public List<IrrigationSystem> getAllSystems() {
-        return repository.findAll();
-    }
-
     //create
     @PostMapping("/systems")
     public IrrigationSystem createSystem(@RequestBody IrrigationSystem system) {
         return repository.save(system);
     }
 
+    //get all systems
+    @GetMapping("/systems")
+    public List<IrrigationSystem> getAllSystems() {
+        return repository.findAll();
+    }    
+
     //get system by id
     @GetMapping("/systems/{id}")
     public ResponseEntity<IrrigationSystem> getSystemById(@PathVariable Long id) {
         IrrigationSystem system = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Sistema " + id + "nao existe"));
         return ResponseEntity.ok(system);
+    }
+
+    //get system by id
+    @GetMapping("/systems/{mac}")
+    public IrrigationSystem getSystemByMacAddress(@PathVariable String mac) {
+        List<IrrigationSystem> sistemas = repository.findAll();
+        return sistemas.stream().filter(s -> s.getMacAddress().equals(mac)).findFirst().orElse(null);       
     }
 
     //update

@@ -23,7 +23,7 @@ import org.springframework.web.client.RestTemplate;
 @RequestMapping("api/nodeMCU")
 public class NodeMCUController {
 
-    private String urlBase = "http://192.168.15.78:";
+    private String urlBase = "http://";
 
     //TODO colocar id do nodeMCU no caminho da requisicao
     
@@ -42,10 +42,11 @@ public class NodeMCUController {
         return response.getStatusCode().toString();
     }
 
-    @RequestMapping("/atualizar/{porta}")
-    public String atualizarDadosNodeMCU(@PathVariable String porta) throws URISyntaxException {
-        RestTemplate restTemplate = new RestTemplate();        
-        URI uri = new URI(urlBase + porta + "/atualizarDados");
+    @RequestMapping("/atualizar/{ip}")
+    public String atualizarDadosNodeMCU(@PathVariable String ip) throws URISyntaxException {
+        RestTemplate restTemplate = new RestTemplate();   
+        String path = urlBase + ip + ":80" + "/atualizarDados";     
+        URI uri = new URI(path);
 
         HttpEntity<String> requestEntity = new HttpEntity<>(null); 
         ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, requestEntity, String.class);

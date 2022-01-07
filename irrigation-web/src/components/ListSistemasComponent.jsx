@@ -30,21 +30,35 @@ class ListSistemasComponent extends Component {
         });
     }
 
-    //TODO add modal para colocar a porta
+    buscarPorMacAddress(sistema) {
+        return dbService.buscarPorMacAddress(sistema.macAddress);
+    }
+
+    salvarNovo(sistema) {
+        if(!this.buscarPorMacAddress(sistema.macAddress)) {
+            dbService.salvar(sistema).then(() => { 
+                this.buscarTodos()
+            }); 
+        } else {
+            console.log("Erro ao salvar: um dispositovo com MacAddress " + sistema.macAddress + " já existe no banco.");
+        }    
+    }
+
+    //TODO add modal para colocar listar os IPs dos dispositivos conectados a rede wifi
     //TODO verificar se ja nao existe com o mesmo MAC
     adicionar() {         
-        let porta = '80';
-        fwService.buscar(porta).then((res) => {
+        let ip = '192.168.15.78'; //ip+porta 80 (porta 80 sera fixa)
+        fwService.buscar(ip).then((res) => {
             let resJson = JSON.parse(res);
             resJson = {...resJson, dataLeitura: new Date().getTime()};
             console.log(resJson);
-            dbService.salvar(resJson).then(() => this.buscarTodos());             
+            this.salvarNovo(resJson);         
         })               
     }
 
     //busca do esp8266 os valores atualizados e atualiza no banco
-    atualizarPorId(id, porta) { 
-        fwService.buscar(porta).then((res) => {
+    atualizarPorId(id, ip) { 
+        fwService.buscar(ip).then((res) => {
             let resJson = JSON.parse(res);
             console.log(resJson); 
             dbService.atualizar(id, resJson).then(() => this.buscarTodos());             
@@ -55,7 +69,7 @@ class ListSistemasComponent extends Component {
     editarPorId(id) {
     }
 
-    regarPorId(id, porta) {
+    regarPorId(id, caminho) {
     }
 
     deletarPorId(id) {
@@ -72,9 +86,9 @@ class ListSistemasComponent extends Component {
                         <td> {sistema.dataLeitura} </td>
                         <td> {sistema.umidade}% </td>
                         <td>
-                            <button onClick={() => this.atualizarPorId(sistema.id, sistema.porta)} className="btn btn-info btn-secondary"> Atualizar </button>
+                            <button onClick={() => this.atualizarPorId(sistema.id, sistema.ip)} className="btn btn-info btn-secondary"> Atualizar </button>
                             <button onClick={() => this.editarPorId(sistema.id)} style={{marginLeft: "10px"}} className="btn btn-info btn-secondary"> Editar </button>
-                            <button onClick={() => this.regarPorId(sistema.id, sistema.porta)} style={{marginLeft: "10px"}} className="btn btn-info btn-secondary"> Regar </button>
+                            <button onClick={() => this.regarPorId(sistema.id, sistema.ip)} style={{marginLeft: "10px"}} className="btn btn-info btn-secondary"> Regar </button>
                             <button onClick={() => this.deletarPorId(sistema.id)} style={{marginLeft: "10px"}} className="btn btn-danger"> Deletar </button>
                         </td>
                 </tr>

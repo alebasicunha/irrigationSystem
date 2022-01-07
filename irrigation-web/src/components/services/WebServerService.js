@@ -6,6 +6,14 @@ class WebServerService {
         return axios.get(WebServerService.BASE_URL);
     }
 
+    buscarPorId(id) {
+        return axios.get(WebServerService.BASE_URL, id);
+    }
+
+    buscarPorMacAddress(mac) {
+        return axios.get(WebServerService.BASE_URL, mac);
+    }
+
     salvar(sistema) {  
         return axios.post(WebServerService.BASE_URL, sistema);
     } 
