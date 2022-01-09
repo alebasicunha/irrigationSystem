@@ -23,6 +23,14 @@ h1 {
   color: #406137 !important;
 }
 
+h2 {
+  text-align: left;
+  font-weight: 700;
+  font-size: 1.2em !important;
+  margin-top: 1vw !important;
+  margin-bottom: 1vw !important;
+}
+
 .text {
   text-align: left;
   font-size: 1em;

@@ -2,12 +2,12 @@ import $ from 'jquery'
 
 class NodeMCUService {
 
-    buscar(porta) {
+    buscar(ip) {
         return new Promise(function(resolve, reject) {
             resolve(
                 $.ajax({
                     type: "POST",
-                    url: NodeMCUService.BASE_URL + "/atualizar" + "/" + porta,
+                    url: NodeMCUService.BASE_URL + "/atualizar/" + ip,
                     success: function (result) {
                         return result;
                     },

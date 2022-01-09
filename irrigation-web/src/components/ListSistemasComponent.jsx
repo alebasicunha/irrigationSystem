@@ -1,7 +1,7 @@
-import React, { Component, useState } from 'react'
-import AlertaErro from './AlertaErro';
+import React, { Component } from 'react'
 import fwService from './services/NodeMCUService';
 import dbService from './services/WebServerService';
+import { AlertaErro } from './AlertaErro';
 
 class ListSistemasComponent extends Component {
 
@@ -10,13 +10,16 @@ class ListSistemasComponent extends Component {
 
         this.state = {
             sistemas: [],
-            alertaErro: false,
+            alerta: false,
+            tituloAlerta: '',
+            msgAlerta: '',
         }
         this.adicionar = this.adicionar.bind(this);
         this.atualizarPorId = this.atualizarPorId.bind(this);
         this.editarPorId = this.editarPorId.bind(this);
         this.regarPorId = this.regarPorId.bind(this);
         this.deletarPorId = this.deletarPorId.bind(this);
+        this.renderAlerta = this.renderAlerta.bind(this);
     }
 
     //TODO fazer receber automaticamente a cada 1h do esp8266 depois de adicionar.
@@ -43,15 +46,15 @@ class ListSistemasComponent extends Component {
 
     salvarNovo(sistema) {
         this.buscarPorMacAddress(sistema).then((res) => {
-            console.dir(res.data.length);
             if(!res.data || this.state.sistemas.length === 0) {
                 console.log("Salvou");
                 dbService.salvar(sistema).then(() => { 
                     this.buscarTodos()
                 }); 
-            } else {
-                this.setState({alertaErro: true})
-                console.log("Erro ao salvar: um dispositovo com MacAddress " + sistema.macAddress + " já existe no banco.");
+            } else {                
+                let msg = "Já existe um dispositovo com o MacAddress: " + sistema.macAddress + ".";
+                this.renderAlerta(true, "Erro ao salvar", msg);
+                console.log(msg);
             }  
         });
     }
@@ -107,9 +110,21 @@ class ListSistemasComponent extends Component {
         return linha;
     };
 
+    renderAlerta(mostrar, titulo, msg) {
+        this.setState({alerta: mostrar});
+        this.setState({tituloAlerta: titulo});
+        this.setState({msgAlerta: msg});
+    }
+
     render() {
         return (
             <div>
+                <div><AlertaErro 
+                                visible={this.state.alerta} 
+                                titulo={this.state.tituloAlerta} 
+                                msg={this.state.msgAlerta}
+                                callback={this.renderAlerta}/>
+                </div>
                 <div className = "row">
                     <button onClick={() => this.adicionar()} className="btn btn-info btn-secondary"> Adicionar </button>
                 </div>
