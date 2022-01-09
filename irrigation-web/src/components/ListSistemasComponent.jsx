@@ -26,7 +26,6 @@ class ListSistemasComponent extends Component {
             //TODO fazer ele regar automaticamente (vinculado com a requisicao feita pelo cliente - site)
     //TODO editar (modal com formularios) - nao editar: mac, ip.
     //TODO regar
-    //TODO alerta de erro qdo nao puder salvar, atualizar, editar, regar, etc.
     //TODO add modal para colocar listar os IPs dos dispositivos conectados a rede wifi    
 
     componentDidMount(){
