@@ -1,8 +1,12 @@
 package com.irrigation.irrigationcore.entities.controller;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.sound.sampled.EnumControl;
 
@@ -33,14 +37,38 @@ public class WebServerController {
     //create
     @PostMapping("/systems")
     public IrrigationSystem createSystem(@RequestBody IrrigationSystem system) {
+        System.out.println("Criou sistema novo: " + system.getMacAddress());
+        if(system.getDataLeitura() == null) {
+            Long timestamp = new Date().getTime();
+            system.setDataLeitura(timestamp);
+        }
         return repository.save(system);
     }
 
-    //get all systems
+    //get most recent entries of all systems 
     @GetMapping("/systems")
     public List<IrrigationSystem> getAllSystems() {
-        return repository.findAll();
-    }    
+        List<IrrigationSystem> sistemas = repository.findAll();
+        return this.buscarMaisRecente(sistemas);
+    } 
+    
+    private List<IrrigationSystem> buscarMaisRecente(List<IrrigationSystem> sistemas) {
+        Map<String, List<IrrigationSystem>> sistemasPorMacAddr = new HashMap<>();
+        
+        sistemasPorMacAddr = sistemas.stream().collect(
+            Collectors.groupingBy(IrrigationSystem::getMacAddress, HashMap::new, Collectors.toCollection(ArrayList::new)));
+        
+        sistemas = new ArrayList<IrrigationSystem>();       
+        for(Map.Entry<String, List<IrrigationSystem>> s : sistemasPorMacAddr.entrySet()) {    
+            s.getValue().sort((o1,o2) -> o2.getDataLeitura().compareTo(o1.getDataLeitura()));
+            
+            System.out.println(s.getKey() + " - ");
+            s.getValue().forEach(c -> System.out.println("id: " + c.getId() + " data: " + c.getDataLeitura() + " ip: " + c.getIp()));
+            
+            sistemas.add(s.getValue().get(0));
+        }
+        return sistemas;
+    }
 
     //get system by id
     @GetMapping("/systems/{id}")

@@ -6,8 +6,44 @@ class NodeMCUService {
         return new Promise(function(resolve, reject) {
             resolve(
                 $.ajax({
+                    type: "GET",
+                    url: NodeMCUService.BASE_URL + "/buscar/" + ip,
+                    success: function (result) {
+                        return result;
+                    },
+                    error: function (result) {
+                        console.dir("Erro");
+                    }
+                })    
+            );
+        });     
+    }
+
+    regarManual(ip) {
+        return new Promise(function(resolve, reject) {
+            resolve(
+                $.ajax({
                     type: "POST",
-                    url: NodeMCUService.BASE_URL + "/atualizar/" + ip,
+                    url: NodeMCUService.BASE_URL + "/regar/" + ip,
+                    success: function (result) {
+                        return result;
+                    },
+                    error: function (result) {
+                        console.dir("Erro");
+                    }
+                })    
+            );
+        });     
+    }
+
+    editar(ip, data) {
+        return new Promise(function(resolve, reject) {
+            resolve(
+                $.ajax({
+                    type: "POST",
+                    url: NodeMCUService.BASE_URL + "/editarDados/" + ip,
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify(data),
                     success: function (result) {
                         return result;
                     },

@@ -9,18 +9,23 @@
 #define LIMITE_MINIMO 50  
 #define LIMITE_MAXIMO 80  
 
+unsigned long lastTime = 0;
+//1h = 3600000ms
+unsigned long timerDelay = 3600000;
+
 //login e senha do wi-fi
 const char *ssid = "Sei la";         
 const char *pass = "eujadisse";
 
 //variaveis de comunicacao
-String serverName = "http://192.168.15.46:8080/api/v1/systems";
+String serverClient = "http://192.168.15.46:8080/api/v1/systems";
 WiFiClient client;
 HTTPClient http;
 ESP8266WebServer server(PORTA_DEFAULT);
 
 struct DadosDoSistema {
   String macAddr;
+  String nome;
   String ip;
   int periodoMedicao; 
   int limiteMinimo;
@@ -51,7 +56,9 @@ void setup()
   Serial.println(WiFi.localIP()); //IP local do ESP8266 na rede wifi
 
   //Especifica qual funcao sera chamada qdo recebermos um request
-  server.on("/atualizarDados", atualizarDados); 
+  server.on("/atualizarDados", enviarDadosAtualizados);
+  server.on("/editarDados", receberDadosAtualizados);
+  server.on("/regarManual", regarManual); 
 
   //Inicia servidor esp8266
   server.begin(); 
@@ -63,6 +70,7 @@ void setup()
 void loop()
 {
   server.handleClient(); //Handling of incoming requests
+  postOnClient();
   // 1 sec delay
   delay(1000);
 }
@@ -72,6 +80,7 @@ void inicializaEstruturaDados() {
   
   dadosDoSistema = {
     WiFi.macAddress(),
+    WiFi.macAddress(), //nome inicial
     WiFi.localIP().toString(),
     PERIODO_DEFAULT,
     LIMITE_MINIMO,
@@ -98,28 +107,98 @@ float lerSensor() {
 }
 
 //Handler para o atualizarDados
-void atualizarDados() { 
- 
-  //if (server.hasArg("plain")== false){ //Check if body received
-  //      server.send(200, "text/plain", "Body not received");
-  //      return;
-  //}
-
-  //String message = "Body received:\n";
-  //       message += server.arg("plain");
-  //       message += "\n";
-  //Serial.println(message);
-
+void enviarDadosAtualizados() { 
   lerSensor();
-  String resposta = toJson();//"{\"umidade\":\"" + String(lerSensor(), 2) + "\"}";
-
+  String resposta = toJson();
   server.send(200, "text/plain", resposta);
   Serial.println(resposta);
 }
 
+//Handler para o regarManual
+void regarManual() { 
+  String resposta = "Ok";
+  server.send(200, "text/plain", resposta);
+  Serial.println(resposta);
+}
+
+void receberDadosAtualizados() {
+   if (server.hasArg("plain")== false){ //Check if body received
+        server.send(200, "text/plain", "Body not received");
+        return;
+  }
+
+  JSONVar dadoJson = JSON.parse(server.arg("plain"));
+
+  // JSON.typeof(jsonVar) can be used to get the type of the var
+  if (JSON.typeof(dadoJson) == "undefined") {
+    Serial.println("Parsing input failed!");
+    server.send(200, "text/plain", "Body not received.");
+    return;
+  } else {
+    if (dadoJson.hasOwnProperty("nome") 
+      && dadoJson.hasOwnProperty("periodoMedicao")
+      && dadoJson.hasOwnProperty("limiteMinimo") 
+      && dadoJson.hasOwnProperty("limiteMaximo")) {
+
+      Serial.print("JSON object = ");
+      Serial.println(dadoJson);
+
+      String periodo = (const char*) dadoJson["periodoMedicao"];
+      String limiteMin = (const char*) dadoJson["limiteMinimo"];
+      String limiteMax = (const char*) dadoJson["limiteMaximo"]; 
+           
+      dadosDoSistema = {
+        WiFi.macAddress(),
+        (const char*) dadoJson["nome"],
+        WiFi.localIP().toString(),
+        periodo.toInt(),
+        limiteMin.toInt(),
+        limiteMax.toInt(),
+        dadosDoSistema.umidadeAtual
+      };
+  
+      imprimirDadosDoSistema();
+  
+      String message = "Body received:\n";
+           message += server.arg("plain");
+           message += "\n";
+      server.send(200, "text/plain", message);
+    } else {
+      Serial.println("Parsing input failed!");
+      server.send(200, "text/plain", "Body not received.");
+    }
+  } 
+}
+
+void postOnClient(){  
+   //Send an HTTP POST request every 10 minutes
+  if ((millis() - lastTime) > (dadosDoSistema.periodoMedicao * timerDelay)) {
+    //Check WiFi connection status
+    if(WiFi.status()== WL_CONNECTED){
+      lerSensor();
+      String data = toJson();
+      
+      http.begin(client, serverClient);      
+      http.addHeader("Content-Type", "application/json");
+      int httpResponseCode = http.POST(data);
+
+      Serial.print("HTTP Response code: ");
+      Serial.println(httpResponseCode);
+      
+      http.end();
+    }
+    else {
+      Serial.println("WiFi Disconnected");
+    }
+    lastTime = millis();
+  }
+}
+
+//adicionar o nome
 String toJson() {
   String abreJson = "{";
   String mac = "\"macAddress\":\"" + dadosDoSistema.macAddr + "\"";
+  String nome = "\"nome\":\"" + dadosDoSistema.nome + "\"";
   String ip = "\"ip\":\"" + String(dadosDoSistema.ip) + "\"";
   String periodoMedicao = "\"periodoMedicao\":\"" + String(dadosDoSistema.periodoMedicao) + "\"";
   String limiteMinimo = "\"limiteMinimo\":\"" + String(dadosDoSistema.limiteMinimo) + "\"";
@@ -128,5 +207,23 @@ String toJson() {
   String fechaJson = "}";
   String v = ",";
 
-  return abreJson + mac + v + ip + v + periodoMedicao + v + limiteMinimo + v + limiteMaximo + v + umidade + fechaJson; 
+  return abreJson + mac + v + nome + v + ip + v + periodoMedicao + v + limiteMinimo + v + limiteMaximo + v + umidade + fechaJson; 
+}
+
+void imprimirDadosDoSistema() {
+  Serial.println("Imprimir dadosDoSistema: ");
+  Serial.print("macAddress: ");
+  Serial.println(dadosDoSistema.macAddr);
+  Serial.print("nome: ");
+  Serial.println(dadosDoSistema.nome);
+  Serial.print("IP: ");
+  Serial.println(dadosDoSistema.ip);
+  Serial.print("Periodo: ");
+  Serial.println(String(dadosDoSistema.periodoMedicao));
+  Serial.print("Limite minimo: ");
+  Serial.println(String(dadosDoSistema.limiteMinimo));
+  Serial.print("Limite maximo: ");
+  Serial.println(String(dadosDoSistema.limiteMaximo));
+  Serial.print("Umidade: ");
+  Serial.println(String(dadosDoSistema.umidadeAtual, 2));
 }

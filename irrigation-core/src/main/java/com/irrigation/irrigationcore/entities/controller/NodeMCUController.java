@@ -1,18 +1,19 @@
 package com.irrigation.irrigationcore.entities.controller;
 
+import java.net.ConnectException;
 import java.net.URI;
 import java.net.URISyntaxException;
+
+import com.irrigation.irrigationcore.entities.IrrigationSystem;
 
 import org.json.JSONObject;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.RequestEntity.HeadersBuilder;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,29 +26,30 @@ public class NodeMCUController {
 
     private String urlBase = "http://";
 
-    //TODO colocar id do nodeMCU no caminho da requisicao
-    
-    //@RequestMapping("/editarDados")
-    @PostMapping("/editarDados")
-    public String editarDadosNodeMCU() throws URISyntaxException {
-        RestTemplate restTemplate = new RestTemplate();        
+    @RequestMapping("/editarDados/{ip}")
+    public String editarDadosNodeMCU(@PathVariable String ip, @RequestBody String sistema) throws URISyntaxException {
+        RestTemplate restTemplate = new RestTemplate(); 
         
-        String dados = "{ \"device\": \"Oiiii\", \"status\": \"FOOOOI\" }";
+        String path = urlBase + ip + ":80" + "/editarDados";     
+        URI uri = new URI(path);
+
         RequestEntity request = RequestEntity
-            .post(new URI("http://192.168.15.78:80/body"))
-            .body(dados);
-        
+            .post(uri)
+            .body(sistema);
+        System.out.println("\n\n\nSistema enviado:" + sistema);
+
         ResponseEntity<String> response = restTemplate.exchange(request, String.class);
         ResponseEntity.ok(response);
+        System.out.println(response.getBody());
         return response.getStatusCode().toString();
     }
 
-    @RequestMapping("/atualizar/{ip}")
-    public String atualizarDadosNodeMCU(@PathVariable String ip) throws URISyntaxException {
+    @RequestMapping("/buscar/{ip}")
+    public String buscarPorIP(@PathVariable String ip) throws URISyntaxException, ConnectException {
         RestTemplate restTemplate = new RestTemplate();   
         String path = urlBase + ip + ":80" + "/atualizarDados";     
         URI uri = new URI(path);
-
+        
         HttpEntity<String> requestEntity = new HttpEntity<>(null); 
         ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.GET, requestEntity, String.class);
      
@@ -55,5 +57,16 @@ public class NodeMCUController {
         return response.getBody().toString();
     }
 
+    @RequestMapping("/regar/{ip}")
+    public String regarManualmente(@PathVariable String ip) throws URISyntaxException {
+        RestTemplate restTemplate = new RestTemplate();   
+        String path = urlBase + ip + ":80" + "/regarManual";     
+        URI uri = new URI(path);
 
+        HttpEntity<String> requestEntity = new HttpEntity<>(null); 
+        ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, requestEntity, String.class);
+     
+        ResponseEntity.ok(response);
+        return response.getStatusCode().name();
+    }
 }
