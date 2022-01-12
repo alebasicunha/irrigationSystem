@@ -48,26 +48,29 @@ public class WebServerController {
     //get most recent entries of all systems 
     @GetMapping("/systems")
     public List<IrrigationSystem> getAllSystems() {
-        List<IrrigationSystem> sistemas = repository.findAll();
-        return this.buscarMaisRecente(sistemas);
+        List<IrrigationSystem> dadosIrrigacao = repository.findAll();
+        return this.buscarMaisRecente(dadosIrrigacao);
     } 
     
-    private List<IrrigationSystem> buscarMaisRecente(List<IrrigationSystem> sistemas) {
-        Map<String, List<IrrigationSystem>> sistemasPorMacAddr = new HashMap<>();
-        
-        sistemasPorMacAddr = sistemas.stream().collect(
-            Collectors.groupingBy(IrrigationSystem::getMacAddress, HashMap::new, Collectors.toCollection(ArrayList::new)));
-        
-        sistemas = new ArrayList<IrrigationSystem>();       
-        for(Map.Entry<String, List<IrrigationSystem>> s : sistemasPorMacAddr.entrySet()) {    
+    private List<IrrigationSystem> buscarMaisRecente(List<IrrigationSystem> dadosIrrigacao) {
+        Map<String, List<IrrigationSystem>> sistemasPorMacAddr = mapearPorMacAddress(dadosIrrigacao);
+        return filtrarMaisRecentePorMacAddress(sistemasPorMacAddr);
+    }
+
+    private Map<String, List<IrrigationSystem>> mapearPorMacAddress(List<IrrigationSystem> dadosIrrigacao) {
+        return dadosIrrigacao.stream().collect(Collectors.groupingBy(IrrigationSystem::getMacAddress, 
+            HashMap::new, Collectors.toCollection(ArrayList::new)));
+    }
+
+    private List<IrrigationSystem> filtrarMaisRecentePorMacAddress(Map<String, List<IrrigationSystem>> dadosIrrigacaoPorMac) {
+        List<IrrigationSystem> dadosIrrigacaoMaisRecentesPorSistema = new ArrayList<IrrigationSystem>();       
+        for(Map.Entry<String, List<IrrigationSystem>> s : dadosIrrigacaoPorMac.entrySet()) {    
             s.getValue().sort((o1,o2) -> o2.getDataLeitura().compareTo(o1.getDataLeitura()));
-            
-            System.out.println(s.getKey() + " - ");
-            s.getValue().forEach(c -> System.out.println("id: " + c.getId() + " data: " + c.getDataLeitura() + " ip: " + c.getIp()));
-            
-            sistemas.add(s.getValue().get(0));
+            dadosIrrigacaoMaisRecentesPorSistema.add(s.getValue().get(0));
+            //System.out.println(s.getKey() + " - ");
+            //s.getValue().forEach(c -> System.out.println("id: " + c.getId() + " data: " + c.getDataLeitura() + " ip: " + c.getIp()));
         }
-        return sistemas;
+        return dadosIrrigacaoMaisRecentesPorSistema;
     }
 
     //get system by id
