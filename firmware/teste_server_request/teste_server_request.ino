@@ -11,7 +11,9 @@
 
 unsigned long lastTime = 0;
 //1h = 3600000ms
-unsigned long timerDelay = 3600000;
+//10min = 600000
+unsigned long timerDelay = 600000;
+int httpResponseCode = 0;
 
 //login e senha do wi-fi
 const char *ssid = "Sei la";         
@@ -116,7 +118,7 @@ void enviarDadosAtualizados() {
 
 //Handler para o regarManual
 void regarManual() { 
-  String resposta = "Ok";
+  String resposta = "Regar manualmente!!!!";
   server.send(200, "text/plain", resposta);
   Serial.println(resposta);
 }
@@ -172,15 +174,18 @@ void receberDadosAtualizados() {
 
 void postOnClient(){  
    //Send an HTTP POST request every 10 minutes
-  if ((millis() - lastTime) > (dadosDoSistema.periodoMedicao * timerDelay)) {
+  if (((millis() - lastTime) > (dadosDoSistema.periodoMedicao * timerDelay)) || (httpResponseCode < 0)) {
     //Check WiFi connection status
     if(WiFi.status()== WL_CONNECTED){
+
       lerSensor();
-      String data = toJson();
-      
+      String dadoAtual = toJson();
+      Serial.print("Enviando para o site: ");
+      Serial.println(dadoAtual);
+
       http.begin(client, serverClient);      
       http.addHeader("Content-Type", "application/json");
-      int httpResponseCode = http.POST(data);
+      httpResponseCode = http.POST(dadoAtual);
 
       Serial.print("HTTP Response code: ");
       Serial.println(httpResponseCode);
