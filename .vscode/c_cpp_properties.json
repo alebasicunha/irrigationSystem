@@ -1,0 +1,23 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:/Users/Bela/.platformio/packages/**",
+                "C:/Users/Bela/Documents/Desenvolvimento/repos/irrigationSystem/irrigation-fw/.pio/libdeps/nodemcu/**",
+                "C:/Users/Bela/.platformio/packages/toolchain-xtensa/lib/gcc/xtensa-lx106-elf/10.3.0/include-fixed",
+                "C:/Users/Bela/.platformio/packages/toolchain-xtensa/xtensa-lx106-elf/include/c++/10.3.0"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "windowsSdkVersion": "10.0.16299.0",
+            "cStandard": "c17",
+            "cppStandard": "c++17"
+        }
+    ],
+    "version": 4
+}
