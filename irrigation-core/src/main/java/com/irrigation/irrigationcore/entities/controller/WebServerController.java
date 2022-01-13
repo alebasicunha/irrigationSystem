@@ -5,10 +5,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import javax.sound.sampled.EnumControl;
 
 import com.irrigation.irrigationcore.entities.IrrigationSystem;
 import com.irrigation.irrigationcore.exceptions.ResourceNotFoundException;
@@ -23,6 +20,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,8 +34,13 @@ public class WebServerController {
 
     //create
     @PostMapping("/systems")
-    public IrrigationSystem createSystem(@RequestBody IrrigationSystem system) {
-        System.out.println("Criou sistema novo: " + system.getMacAddress());
+    public IrrigationSystem createSystem(@RequestHeader Map<String, String> headers, @RequestBody IrrigationSystem system) {
+        System.out.println("\n\n ----- ESP8266 fez um POST -----");
+        headers.forEach((key, value) -> {
+	        System.out.println("Header "+ key+" = "+ value);
+	    });
+        
+        System.out.println("\nSistema novo (" + system.getMacAddress() + ") criado com sucesso!\n\n");
         if(system.getDataLeitura() == null) {
             Long timestamp = new Date().getTime();
             system.setDataLeitura(timestamp);
