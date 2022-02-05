@@ -37,9 +37,6 @@ class ListSistemasComponent extends Component {
         this.renderModalAdicionar = this.renderModalAdicionar.bind(this);
         this.onSalvarModalAdicionar = this.onSalvarModalAdicionar.bind(this);
     }
-   
-    //TODO testar qdo o esp8266 está desligado.
-    //TODO deletar por mac e nao por id??? assim apaga todas as entradas daquele mac????
 
     componentDidMount(){
         this.buscarTodos();
