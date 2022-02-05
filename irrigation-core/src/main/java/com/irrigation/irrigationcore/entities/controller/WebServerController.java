@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import com.irrigation.irrigationcore.entities.IrrigationSystem;
@@ -84,12 +85,12 @@ public class WebServerController {
 
     //get system by mac
     @GetMapping("/systems/mac/{mac}")
-    public IrrigationSystem getSystemByMacAddress(@PathVariable String mac) {
+    public List<IrrigationSystem> getSystemByMacAddress(@PathVariable String mac) {
         List<IrrigationSystem> sistemas = repository.findAll();
         System.out.println("Sistemas:"+ sistemas.size());
 
-        IrrigationSystem encontrado = sistemas.stream()
-            .filter(s -> s.getMacAddress().equals(mac)).findFirst().orElse(null);
+        List<IrrigationSystem> encontrado = sistemas.stream()
+            .filter(s -> s.getMacAddress().equals(mac)).collect(Collectors.toList());
         System.out.println("Mac:"+ mac);
         return encontrado;       
     }

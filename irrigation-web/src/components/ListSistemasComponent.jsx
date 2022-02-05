@@ -1,9 +1,11 @@
 import React, { Component } from 'react'
 import fwService from './services/NodeMCUService';
 import dbService from './services/WebServerService';
+import dateFormat from "dateformat";
 import { AlertaErro } from './AlertaErro';
 import { ModalEditar } from './ModalEditar';
-import dateFormat from "dateformat";
+import { ModalGrafico } from './ModalGrafico';
+import { ModalAdicionar } from './ModalAdicionar';
 
 class ListSistemasComponent extends Component {
 
@@ -14,8 +16,11 @@ class ListSistemasComponent extends Component {
             sistemas: [],
             alerta: false,
             tituloAlerta: '',
+            varianteAlerta: '',
             msgAlerta: '',
             modalEditar: false,
+            modalGraficos: false,
+            modalAdicionar: false,
             tituloModal: '',
             sistemaSelecionado: null,
         }
@@ -25,17 +30,16 @@ class ListSistemasComponent extends Component {
         this.regarPorId = this.regarPorIp.bind(this);
         this.deletarPorId = this.deletarPorId.bind(this);
         this.renderAlerta = this.renderAlerta.bind(this);
-        this.renderModal = this.renderModal.bind(this);
-        this.onSalvarModal = this.onSalvarModal.bind(this);
+        this.renderModalEditar = this.renderModalEditar.bind(this);
+        this.onSalvarModalEditar = this.onSalvarModalEditar.bind(this);
+        this.renderModalGraficos = this.renderModalGraficos.bind(this);
+        this.onSalvarModalGraficos = this.onSalvarModalGraficos.bind(this);
+        this.renderModalAdicionar = this.renderModalAdicionar.bind(this);
+        this.onSalvarModalAdicionar = this.onSalvarModalAdicionar.bind(this);
     }
-
-    //TODO fazer ele regar automaticamente a cada xh
-    //TODO regar manual
-
-    //TODO add modal para colocar listar os IPs dos dispositivos conectados a rede wifi    
-
-    //TODO add um loading
+   
     //TODO testar qdo o esp8266 está desligado.
+    //TODO deletar por mac e nao por id??? assim apaga todas as entradas daquele mac????
 
     componentDidMount(){
         this.buscarTodos();
@@ -45,29 +49,25 @@ class ListSistemasComponent extends Component {
         dbService.buscarTodos().then((res) => {
             console.log('Buscar todos');
             console.log(res);
-            this.setState({ sistemas: res.data });                
+            this.setState({ sistemas: res.data });                            
         });
     }
 
     //so eh possivel adicionar uma vez cada dispositivo.
-    adicionar() {         
-        let ip = '192.168.15.78'; //porta 80 eh fixa
-        fwService.buscar(ip).then((res) => {
-            let resJson = JSON.parse(res);
-            resJson = {...resJson, dataLeitura: new Date().getTime()};
-            this.salvarNovo(resJson);         
-        })               
+    adicionar() {          
+        let tituloModal = "Adicionar novo dispositivo: ";
+        this.renderModalAdicionar(true, tituloModal);
     }
 
     salvarNovo(sistema) {
         dbService.buscarPorMacAddress(sistema.macAddress).then((res) => {
-            if(!res.data || this.state.sistemas.length === 0) {
+            if(!res.length === 0 || this.state.sistemas.length === 0) {
                 dbService.salvar(sistema).then(() => { 
                     this.buscarTodos()
                 }); 
             } else {                
                 let msg = "Já existe um dispositivo com o MacAddress: " + sistema.macAddress + ".";
-                this.renderAlerta(true, "Erro ao adicionar dispositivo!", msg);
+                this.renderAlerta(true, "Erro ao adicionar dispositivo!", msg, "danger");
             }  
         });
     }
@@ -85,16 +85,22 @@ class ListSistemasComponent extends Component {
 
     //nao precisa do ip na vdd?
     editarPorId(sistema) {
-        let nomeOuMacAddr = sistema.nome ? sistema.nome : sistema.macAddress; 
+        let nomeOuMacAddr = sistema.nome; 
         let tituloModal = "Editar dispositivo: " + nomeOuMacAddr;
-        this.renderModal(true, tituloModal, sistema);
+        this.renderModalEditar(true, tituloModal, sistema);
     }
 
-    regarPorIp(id, ip) {
+    regarPorIp(ip) {
         let msgErro = "Não foi possível regar o dispositivo.";
+        let msgSucesso = "A regagem manual foi realizada com sucesso!";
         fwService.regarManual(ip).then((res) => {
-            console.log("Regar:");
-            res !== "OK" ? this.renderAlerta(true, "Erro ao regar!", msgErro) : console.log(res);
+            if(res !== "OK") { 
+                this.renderAlerta(true, "Erro ao regar!", msgErro, "danger");
+            } else { 
+                this.renderAlerta(true, "Sucesso!!!", msgSucesso, "success");
+            }
+            this.buscarTodos();
+            document.getElementById(ip+'btn').blur();
         });
     }
 
@@ -104,17 +110,23 @@ class ListSistemasComponent extends Component {
         });
     }
 
+    graficosPorId(sistema) {
+        let nomeOuMacAddr = sistema.nome; 
+        let tituloModal = "Dados do dispositivo: " + nomeOuMacAddr;
+        this.renderModalGraficos(true, tituloModal, sistema);
+    }
+
     renderLinha() {
         const linha = this.state.sistemas.map( sistema =>
             (
                 <tr key = {sistema.id}>
-                        <td> {sistema.nome ? sistema.nome : sistema.macAddress} </td>   
+                        <td> <a href="/#" onClick={() => this.graficosPorId(sistema)}>{sistema.nome}</a> </td>   
                         <td> {dateFormat(new Date(sistema.dataLeitura), 'dd/mm/yyyy, h:MM TT')} </td>
                         <td> {sistema.umidade}% </td>
                         <td>
                             <button onClick={() => this.atualizarPorIp(sistema.ip)} className="btn btn-info btn-secondary"> Atualizar </button>
                             <button onClick={() => this.editarPorId(sistema)} style={{marginLeft: "10px"}} className="btn btn-info btn-secondary"> Editar </button>
-                            <button onClick={() => this.regarPorIp(sistema.id, sistema.ip)} style={{marginLeft: "10px"}} className="btn btn-info btn-secondary"> Regar </button>
+                            <button onClick={() => this.regarPorIp(sistema.ip)} style={{marginLeft: "10px"}} id={sistema.ip+"btn"} className="btn btn-info btn-secondary"> Regar </button>
                             <button onClick={() => this.deletarPorId(sistema.id)} style={{marginLeft: "10px"}} className="btn btn-danger"> Deletar </button>
                         </td>
                 </tr>
@@ -122,25 +134,53 @@ class ListSistemasComponent extends Component {
         return linha;
     };
 
-    renderAlerta(mostrar, titulo, msg) {
+    renderAlerta(mostrar, titulo, msg, variante) {
         this.setState({alerta: mostrar});
         this.setState({tituloAlerta: titulo});
         this.setState({msgAlerta: msg});
+        this.setState({varianteAlerta: variante});
     }
 
-    renderModal(mostrar, titulo, sistema) {
+    renderModalEditar(mostrar, titulo, sistema) {
         this.setState({modalEditar: mostrar});
         this.setState({tituloModal: titulo});
         this.setState({sistemaSelecionado: sistema});
     }
 
-    onSalvarModal(mostrar, sistemaSelecionado){        
+    onSalvarModalEditar(mostrar, sistemaSelecionado){        
         this.setState({modalEditar: mostrar});
         this.setState({sistemaSelecionado: sistemaSelecionado});     
         fwService.editar(sistemaSelecionado.ip, sistemaSelecionado).then(() => {
                 this.atualizarPorIp(sistemaSelecionado.ip);
         }); 
         
+    }
+
+    renderModalGraficos(mostrar, titulo, sistema) {        
+        this.setState({tituloModal: titulo});
+        dbService.buscarPorMacAddress(sistema.macAddress).then((res) => {
+            console.log('Buscar todos de um mac');
+            console.log(res);
+            this.setState({ sistemaSelecionado: res.data });                
+        }).then(() => this.setState({modalGraficos: mostrar}));
+    }
+
+    onSalvarModalGraficos(mostrar) {       
+        this.setState({modalGraficos: mostrar});        
+    }
+
+    renderModalAdicionar(mostrar, titulo, devices) {  
+        this.setState({modalAdicionar: mostrar});      
+        this.setState({tituloModal: titulo});
+    }
+
+    onSalvarModalAdicionar(mostrar, ip) {        
+        this.setState({modalAdicionar: mostrar});     
+        fwService.buscar(ip).then((res) => {
+            let resJson = JSON.parse(res);
+            resJson = {...resJson, dataLeitura: new Date().getTime()};
+            this.salvarNovo(resJson);         
+        }) 
     }
 
     render() {
@@ -150,6 +190,7 @@ class ListSistemasComponent extends Component {
                             visible={this.state.alerta} 
                             titulo={this.state.tituloAlerta} 
                             msg={this.state.msgAlerta}
+                            variante={this.state.varianteAlerta}
                             callback={this.renderAlerta}/>
                 </div>
                 <div className = "row">
@@ -174,8 +215,19 @@ class ListSistemasComponent extends Component {
                 <ModalEditar
                     visible={this.state.modalEditar} 
                     titulo={this.state.tituloModal}    
-                    callback={this.onSalvarModal}
+                    callback={this.onSalvarModalEditar}
                     sistema={this.state.sistemaSelecionado}
+                />
+                <ModalGrafico
+                    visible={this.state.modalGraficos} 
+                    titulo={this.state.tituloModal}    
+                    callback={this.onSalvarModalGraficos}
+                    sistemas={this.state.sistemaSelecionado}
+                />
+                <ModalAdicionar
+                    visible={this.state.modalAdicionar} 
+                    titulo={this.state.tituloModal}    
+                    callback={this.onSalvarModalAdicionar}
                 />
             </div>
         )

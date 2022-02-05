@@ -16,7 +16,7 @@ export class AlertaErro extends React.Component {
     if(this.props.visible){
       return (
         <div>
-          <Alert className="alerta" variant="danger" onClose={this.onDismiss} dismissible>
+          <Alert className="alerta" variant={this.props.variante} onClose={this.onDismiss} dismissible>
             <h2>{this.props.titulo}</h2>
             <hr></hr>
             <p className='text'>{this.props.msg}</p>

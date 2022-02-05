@@ -16,10 +16,6 @@ class HeaderComponent extends Component {
                                 <img src={"../logoLeaf.png"} width="40" height="40" className="d-inline-block align-bottom" alt=""/>
                                 Irrigador
                             </a>
-                            <form className="d-inline-flex my-2 my-lg-0">
-                                <input className="form-control mx-sm-2 input" type="search" placeholder="Buscar" aria-label="Buscar"/>
-                                <button className="btn btn-primary my-2 my-sm-0" type="submit">Buscar</button>
-                            </form>
                         </div>
                     </nav>
                 </header>
