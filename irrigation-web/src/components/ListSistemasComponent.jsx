@@ -80,7 +80,6 @@ class ListSistemasComponent extends Component {
         });
     }
 
-    //nao precisa do ip na vdd?
     editarPorId(sistema) {
         let nomeOuMacAddr = sistema.nome; 
         let tituloModal = "Editar dispositivo: " + nomeOuMacAddr;
