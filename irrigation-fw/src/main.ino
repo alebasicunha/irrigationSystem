@@ -44,39 +44,43 @@ void setup()
   Serial.begin(9600);
   delay(10);
 
-  //conectar ao wi-fi
-  Serial.print("MAC: ");
-  Serial.println(WiFi.macAddress());
-  Serial.println("Connecting to ");
-  Serial.println(ssid);
-  WiFi.begin(ssid, pass);
-  while (WiFi.status() != WL_CONNECTED)
-  {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("\nWiFi connected");
-  Serial.println("IP address: ");
-  Serial.println(WiFi.localIP()); //IP local do ESP8266 na rede wifi
+  conectarWiFi();
 
-  //Especifica qual funcao sera chamada qdo recebermos um request
+  //Especifica qual funcao sera chamada em cada request
   server.on("/atualizarDados", enviarDadosAtualizados);
   server.on("/editarDados", receberDadosAtualizados);
   server.on("/regarManual", regarManual); 
 
   //Inicia servidor esp8266
   server.begin(); 
-  Serial.println("Server listening");
+  Serial.println("Servidor ouvindo!!!");
 
   inicializaEstruturaDados();
 }
 
 void loop()
 {
-  server.handleClient(); //Lida com os requests dos clientes
+  //Lida com os requests dos clientes
+  server.handleClient(); 
   postOnClient();
-  // 1 sec delay
   delay(1000);
+}
+
+void conectarWiFi() {
+  Serial.print("MAC: ");
+  Serial.println(WiFi.macAddress());
+  Serial.println("Connecting to ");
+  
+  Serial.println(ssid);
+  WiFi.begin(ssid, pass);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("\nWiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP()); //IP local do ESP8266 na rede wifi
 }
 
 void inicializaEstruturaDados() {
@@ -110,7 +114,7 @@ float lerSensor() {
   return h;
 }
 
-//Handler para o atualizarDados
+//Lida com o atualizarDados
 void enviarDadosAtualizados() { 
   lerSensor();
   String resposta = toJson();
@@ -118,7 +122,7 @@ void enviarDadosAtualizados() {
   Serial.println(resposta);
 }
 
-//Handler para o regarManual
+//Lida com o regarManual
 void regarManual() { 
   String resposta = "Regar manualmente!!!!";
   server.send(200, "text/plain", resposta);
@@ -126,26 +130,26 @@ void regarManual() {
 }
 
 void receberDadosAtualizados() {
-   if (server.hasArg("plain") == false) { //Check if body received
+  // Checa se o corpo da mensagem veio na request
+   if (server.hasArg("plain") == false) { 
       server.send(200, "text/plain", "Body not received");
       return;
   }
 
   JSONVar dadoJson = JSON.parse(server.arg("plain"));
 
-  // JSON.typeof(jsonVar) can be used to get the type of the var
   if (JSON.typeof(dadoJson) == "undefined") {
-    Serial.println("Parsing input failed!");
+
+    Serial.println("Erro no formato do corpo da mensagem!");
     server.send(200, "text/plain", "Body not received.");
     return;
+
   } else {
+
     if (dadoJson.hasOwnProperty("nome") 
       && dadoJson.hasOwnProperty("periodoMedicao")
       && dadoJson.hasOwnProperty("limiteMinimo") 
       && dadoJson.hasOwnProperty("limiteMaximo")) {
-
-      Serial.print("JSON object = ");
-      Serial.println(dadoJson);
 
       String periodo = (const char*) dadoJson["periodoMedicao"];
       String limiteMin = (const char*) dadoJson["limiteMinimo"];
@@ -167,24 +171,31 @@ void receberDadosAtualizados() {
            message += server.arg("plain");
            message += "\n";
       server.send(200, "text/plain", message);
+
     } else {
+
       Serial.println("Parsing input failed!");
       server.send(200, "text/plain", "Body not received.");
     }
   } 
 }
 
-void postOnClient(){  
-   //Send an HTTP POST request every 10 minutes
+/*
+  Envia um HTTP POST para a aplicação a cada período de tempo
+  contendo os dados de sistemas atuais.
+  Se houver erro durante o envio, 
+  reenvia enquanto o código de resposta não for de SUCESSO
+*/
+void postOnClient() {
+
   if (((millis() - lastTime) > (dadosDoSistema.periodoMedicao * timerDelay)) || (httpResponseCode < 0)) {
-    //Check WiFi connection status
+    // Checa conexão antes de tentar enviar.
     if(WiFi.status() == WL_CONNECTED){
 
       lerSensor();
       
       String dadoAtual = toJson();
-      Serial.print("Enviando para o site: ");
-      Serial.println(dadoAtual);
+      imprimirDadosDoSistema();
 
       http.begin(client, serverClient);      
       http.addHeader("Content-Type", "application/json");
@@ -192,12 +203,12 @@ void postOnClient(){
 
       Serial.print("HTTP Response code: ");
       Serial.println(httpResponseCode);
-      
       http.end();
+
+    } else {
+      Serial.println("WiFi Disconnected!!!");
     }
-    else {
-      Serial.println("WiFi Disconnected");
-    }
+
     lastTime = millis();
   }
 }
@@ -219,7 +230,7 @@ String toJson() {
 }
 
 void imprimirDadosDoSistema() {
-  Serial.println("Imprimir dadosDoSistema: ");
+  Serial.println("----- Imprimir dadosDoSistema: -----");
   Serial.print("macAddress: ");
   Serial.println(dadosDoSistema.macAddr);
   Serial.print("nome: ");
@@ -234,4 +245,5 @@ void imprimirDadosDoSistema() {
   Serial.println(String(dadosDoSistema.limiteMaximo));
   Serial.print("Umidade: ");
   Serial.println(String(dadosDoSistema.umidadeAtual, 2));
+  Serial.println("------------------------------------");
 }
