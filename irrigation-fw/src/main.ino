@@ -3,6 +3,7 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPClient.h>
 #include <ESP8266WiFi.h>
+#include <WiFiClient.h>
 
 #define TIMEOUT 5000
 #define PORTA_DEFAULT 80  
@@ -72,7 +73,7 @@ void setup()
 
 void loop()
 {
-  server.handleClient(); //Handling of incoming requests
+  server.handleClient(); //Lida com os requests dos clientes
   postOnClient();
   // 1 sec delay
   delay(1000);
@@ -104,8 +105,8 @@ float lerSensor() {
   }
   
   Serial.print("Humidity Level: ");
-  Serial.println(h);
   dadosDoSistema.umidadeAtual = h;
+  Serial.println(dadosDoSistema.umidadeAtual);
   return h;
 }
 
@@ -125,9 +126,9 @@ void regarManual() {
 }
 
 void receberDadosAtualizados() {
-   if (server.hasArg("plain")== false){ //Check if body received
-        server.send(200, "text/plain", "Body not received");
-        return;
+   if (server.hasArg("plain") == false) { //Check if body received
+      server.send(200, "text/plain", "Body not received");
+      return;
   }
 
   JSONVar dadoJson = JSON.parse(server.arg("plain"));
@@ -177,9 +178,10 @@ void postOnClient(){
    //Send an HTTP POST request every 10 minutes
   if (((millis() - lastTime) > (dadosDoSistema.periodoMedicao * timerDelay)) || (httpResponseCode < 0)) {
     //Check WiFi connection status
-    if(WiFi.status()== WL_CONNECTED){
+    if(WiFi.status() == WL_CONNECTED){
 
       lerSensor();
+      
       String dadoAtual = toJson();
       Serial.print("Enviando para o site: ");
       Serial.println(dadoAtual);
