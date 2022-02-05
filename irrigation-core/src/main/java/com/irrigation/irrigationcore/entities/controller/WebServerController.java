@@ -70,8 +70,6 @@ public class WebServerController {
         for(Map.Entry<String, List<IrrigationSystem>> s : dadosIrrigacaoPorMac.entrySet()) {    
             s.getValue().sort((o1,o2) -> o2.getDataLeitura().compareTo(o1.getDataLeitura()));
             dadosIrrigacaoMaisRecentesPorSistema.add(s.getValue().get(0));
-            //System.out.println(s.getKey() + " - ");
-            //s.getValue().forEach(c -> System.out.println("id: " + c.getId() + " data: " + c.getDataLeitura() + " ip: " + c.getIp()));
         }
         return dadosIrrigacaoMaisRecentesPorSistema;
     }
@@ -79,7 +77,8 @@ public class WebServerController {
     //get system by id
     @GetMapping("/systems/{id}")
     public ResponseEntity<IrrigationSystem> getSystemById(@PathVariable Long id) {
-        IrrigationSystem system = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Sistema " + id + "nao existe"));
+        IrrigationSystem system = repository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Sistema " + id + "nao existe"));
         return ResponseEntity.ok(system);
     }
 
@@ -89,7 +88,8 @@ public class WebServerController {
         List<IrrigationSystem> sistemas = repository.findAll();
         System.out.println("Sistemas:"+ sistemas.size());
 
-        IrrigationSystem encontrado = sistemas.stream().filter(s -> s.getMacAddress().equals(mac)).findFirst().orElse(null);
+        IrrigationSystem encontrado = sistemas.stream()
+            .filter(s -> s.getMacAddress().equals(mac)).findFirst().orElse(null);
         System.out.println("Mac:"+ mac);
         return encontrado;       
     }
@@ -97,7 +97,8 @@ public class WebServerController {
     //update
     @PutMapping("/systems/{id}")
     public ResponseEntity<IrrigationSystem> updateSystem(@PathVariable Long id, @RequestBody IrrigationSystem novoSystem) {
-        IrrigationSystem system = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Sistema " + id + "nao existe"));
+        IrrigationSystem system = repository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Sistema " + id + "nao existe"));
         system.setNome(novoSystem.getNome());
         system.setDataLeitura(novoSystem.getDataLeitura());
         system.setMacAddress(novoSystem.getMacAddress());
@@ -110,7 +111,8 @@ public class WebServerController {
     //delete
     @DeleteMapping("/systems/{id}")
     public ResponseEntity<Map<String, Boolean>> deleteSystem(@PathVariable Long id) {
-        IrrigationSystem system = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Sistema " + id + "nao existe"));
+        IrrigationSystem system = repository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Sistema " + id + "nao existe"));
 
         Map<String, Boolean> response = new HashMap<>();    
         repository.delete(system);
