@@ -67,6 +67,6 @@ public class NodeMCUController {
         ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, requestEntity, String.class);
      
         ResponseEntity.ok(response);
-        return response.getStatusCode().name();
+        return response.getBody();
     }
 }

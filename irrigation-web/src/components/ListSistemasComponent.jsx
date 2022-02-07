@@ -77,14 +77,16 @@ class ListSistemasComponent extends Component {
     }
 
     regarPorIp(ip) {
-        let msgErro = "Não foi possível regar o dispositivo.";
-        let msgSucesso = "A regagem manual foi realizada com sucesso!";
         fwService.regarManual(ip).then((res) => {
-            if(res !== "OK") { 
-                this.renderAlerta(true, "Erro ao regar!", msgErro, "danger");
-            } else { 
-                this.renderAlerta(true, "Sucesso!!!", msgSucesso, "success");
+            var alertaTitulo = "Sucesso!!!";
+            var alertaColor = "success";
+            var msg = "Rega manual iniciada com sucesso!";
+            if (res.includes("Erro")) {
+                alertaTitulo = "Ops...algo deu errado!";   
+                alertaColor = "danger";
+                msg = "Rega manual não iniciada: umidade acima do limite máximo!";
             }
+            this.renderAlerta(true, alertaTitulo, msg, alertaColor);
             this.buscarTodos();
             document.getElementById(ip+'btn').blur();
         }).catch((error) => {
