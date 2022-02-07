@@ -53,7 +53,7 @@ public class IrrigationSystem {
         this.ip = ip;
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 

@@ -9,7 +9,6 @@ import { ModalAdicionar } from './ModalAdicionar';
 
 class ListSistemasComponent extends Component {
 
-    //TODO deletar deve apagar todas as entradas daquele dispositivo.
     constructor(props) {
         super(props)
 
@@ -29,7 +28,7 @@ class ListSistemasComponent extends Component {
         this.atualizarPorIp = this.atualizarPorIp.bind(this);
         this.editarPorId = this.editarPorId.bind(this);
         this.regarPorId = this.regarPorIp.bind(this);
-        this.deletarPorId = this.deletarPorId.bind(this);
+        this.deletarPorId = this.deletarTodasEntradasDoDispositivo.bind(this);
         this.renderAlerta = this.renderAlerta.bind(this);
         this.renderModalEditar = this.renderModalEditar.bind(this);
         this.onSalvarModalEditar = this.onSalvarModalEditar.bind(this);
@@ -64,10 +63,10 @@ class ListSistemasComponent extends Component {
             resJson = {...resJson, dataLeitura: new Date().getTime()};           
             dbService.salvar(resJson).then(() => { 
                 this.buscarTodos()
-            }).catch((error) => {
-                var msg = "Nenhum dispositivo com o IP " + ip + "foi encontrado. Verifique se o dispositivo está ligado corretamente.";
-                this.renderAlerta(true, "Erro ao adicionar dispositivo!", msg, "danger");
             });
+        }).catch((error) => {
+            var msg = "Nenhum dispositivo com o IP " + ip + "foi encontrado. Verifique se o dispositivo está ligado corretamente.";
+            this.renderAlerta(true, "Erro ao adicionar dispositivo!", msg, "danger");
         });
     }
 
@@ -95,9 +94,11 @@ class ListSistemasComponent extends Component {
         });
     }
 
-    deletarPorId(id) {
-        dbService.deletar(id).then( res => {
-            this.setState({sistemas: this.state.sistemas.filter(sistema => sistema.id !== id)});
+    deletarTodasEntradasDoDispositivo(id) {
+        dbService.deletarTodos(id).then( res => {
+            console.log(res);
+            //this.setState({sistemas: this.state.sistemas.filter(sistema => sistema.id !== id)});
+            this.buscarTodos()
         });
     }
 
@@ -118,7 +119,7 @@ class ListSistemasComponent extends Component {
                             <button onClick={() => this.atualizarPorIp(sistema.ip)} className="btn btn-info btn-secondary"> Atualizar </button>
                             <button onClick={() => this.editarPorId(sistema)} style={{marginLeft: "10px"}} className="btn btn-info btn-secondary"> Editar </button>
                             <button onClick={() => this.regarPorIp(sistema.ip)} style={{marginLeft: "10px"}} id={sistema.ip+"btn"} className="btn btn-info btn-secondary"> Regar </button>
-                            <button onClick={() => this.deletarPorId(sistema.id)} style={{marginLeft: "10px"}} className="btn btn-danger"> Deletar </button>
+                            <button onClick={() => this.deletarTodasEntradasDoDispositivo(sistema.id)} style={{marginLeft: "10px"}} className="btn btn-danger"> Deletar </button>
                         </td>
                 </tr>
             ));

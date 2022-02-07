@@ -87,11 +87,12 @@ public class WebServerController {
     @GetMapping("/systems/mac/{mac}")
     public List<IrrigationSystem> getSystemByMacAddress(@PathVariable String mac) {
         List<IrrigationSystem> sistemas = repository.findAll();
-        System.out.println("Sistemas:"+ sistemas.size());
+        System.out.println("\n\nMac: "+ mac);
+        System.out.println("Entradas: "+ sistemas.size());
 
         List<IrrigationSystem> encontrado = sistemas.stream()
             .filter(s -> s.getMacAddress().equals(mac)).collect(Collectors.toList());
-        System.out.println("Mac:"+ mac);
+        
         return encontrado;       
     }
 
@@ -111,7 +112,7 @@ public class WebServerController {
 
     //delete
     @DeleteMapping("/systems/{id}")
-    public ResponseEntity<Map<String, Boolean>> deleteSystem(@PathVariable Long id) {
+    public ResponseEntity<Map<String, Boolean>> deleteSystemById(@PathVariable Long id) {
         IrrigationSystem system = repository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Sistema " + id + "nao existe"));
 
@@ -119,6 +120,24 @@ public class WebServerController {
         repository.delete(system);
         response.put("deleted", true);
         
+        return ResponseEntity.ok(response);
+    }
+
+    //delete all 
+    @DeleteMapping("/systems/deletarTodos/{id}")
+    public ResponseEntity<Map<String, Boolean>> deleteSystem(@PathVariable Long id) {
+        Map<String, Boolean> response = new HashMap<>(); 
+
+        IrrigationSystem system = repository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Sistema " + id + "nao existe"));
+
+        List<IrrigationSystem> sistemasPorMac = this.getSystemByMacAddress(system.getMacAddress());
+        sistemasPorMac.stream().forEach(sistema -> {
+            String idAtual = sistema.getId().toString();
+            repository.delete(sistema);
+            response.put("deleted " + idAtual, true);
+        });
+
         return ResponseEntity.ok(response);
     }
 
