@@ -41,11 +41,11 @@ struct DadosDoSistema {
 DadosDoSistema dadosDoSistema;
 
 // Variaveis do estado da rega
+uint8_t relePin = D5;      
 enum statusRega {
   IDLE,
   REGANDO,
   ACIMA_LIMITE_MAXIMO,
-  ACIMA_LIMITE_MINIMO,
   FIM
 };
 
@@ -76,6 +76,7 @@ void loop()
   //Lida com os requests dos clientes
   server.handleClient(); 
   postOnClient();
+  regar();
   delay(1000);
 }
 
@@ -123,25 +124,28 @@ void regarManual() {
   comecarRegaManual = true;  
   String msg = "";
 
-  regar();
+  verificarNecessidadeDeRegar();
 
   switch (status)
   {
     case REGANDO:
-      msg = "Rega manual iniciada com sucesso!";
+      msg = "Sucesso.";
       break;
     
     case ACIMA_LIMITE_MAXIMO:
-      msg = "Rega manual não iniciada: umidade acima do limite máximo!";
+      msg = "Erro: acima do limite permitido.";
+      status = IDLE;
       break;
 
     default: 
-      msg = "Rega manual não iniciada!";
+      msg = "Erro desconhecido.";
       break;
   }
 
   server.send(200, "text/plain", msg);
   Serial.println(msg);
+
+  comecarRegaManual = false;
 }
 
 void receberDadosAtualizados() {
@@ -196,22 +200,25 @@ void receberDadosAtualizados() {
 }
 
 /*
-  Envia um HTTP POST para a aplicação a cada período de tempo ou ao fim da rega
+  Envia um HTTP POST para a aplicacao a cada periodo de tempo ou ao fim da rega
   contendo os dados de sistemas atuais.
   Se houver erro durante o envio, 
-  reenvia enquanto o código de resposta não for de SUCESSO
+  reenvia enquanto o codigo de resposta nao for de SUCESSO
 */
 void postOnClient() {
-
-  regar();
-
   if (((millis() - lastTime) > (dadosDoSistema.periodoMedicao * timerDelay)) 
         || (httpResponseCode < 0) 
         || (status == FIM)) {
+    
+    if (!(httpResponseCode < 0)) {
+      verificarNecessidadeDeRegar();
+      status = status == ACIMA_LIMITE_MAXIMO ? IDLE : status;
+    }    
+
     // Checa conexão antes de tentar enviar.
     if(WiFi.status() == WL_CONNECTED) {     
       
-      Serial.println("Enviando dados para aplicação: ");
+      Serial.println("Enviando dados para aplicacao: ");
       String dadoAtual = toJson();
       imprimirDadosDoSistema();
 
@@ -223,7 +230,6 @@ void postOnClient() {
       Serial.println(httpResponseCode);
       http.end();
 
-      status = status == FIM ? IDLE : status;
 
     } else {
       Serial.println("WiFi Disconnected!!!");
@@ -234,29 +240,25 @@ void postOnClient() {
 }
 
 void regar() {
-  float umidade = lerSensor();
-
-  verificarNecessidadeDeRegar(umidade);
   if(status == REGANDO) {
-    Serial.println("Regando...");
-    delay(1000);
+    Serial.println("Ligando motor");
+    digitalWrite(relePin, HIGH);
+    delay(1000);                
+    Serial.println("Desligando motor");
+    digitalWrite(relePin, LOW);
+    verificarNecessidadeDeRegar();
   }
 }
 
-void verificarNecessidadeDeRegar(float umidade) {
+void verificarNecessidadeDeRegar() {
+  float umidade = lerSensor();
   if (umidade < dadosDoSistema.limiteMaximo) {
     if (umidade < dadosDoSistema.limiteMinimo || comecarRegaManual) {
       status = REGANDO;
-      return;
     }
-
-    comecarRegaManual = false;
-    Serial.println("Acima do limite minimo!!!");
-    status = status == REGANDO ? FIM : ACIMA_LIMITE_MINIMO;
-  
   } else {
-    comecarRegaManual = false;
     Serial.println("Acima do limite maximo!!!");
+
     status = status == REGANDO ? FIM : ACIMA_LIMITE_MAXIMO;
   }
 }
@@ -268,7 +270,7 @@ float lerSensor() {
   float h = 100 - (analogRead(A0)/10.24);
   if (isnan(h))
   {
-    Serial.println("Não foi possível ler o sensor!");
+    Serial.println("Nao foi possivel ler o sensor!");
     return -1;
   }
   
