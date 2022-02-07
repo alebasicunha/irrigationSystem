@@ -65,8 +65,8 @@ class ListSistemasComponent extends Component {
                 this.buscarTodos()
             });
         }).catch((error) => {
-            var msg = "Nenhum dispositivo com o IP " + ip + "foi encontrado. Verifique se o dispositivo está ligado corretamente.";
-            this.renderAlerta(true, "Erro ao adicionar dispositivo!", msg, "danger");
+            var msg = "Nenhum dispositivo com o IP " + ip + " foi encontrado. Verifique se o dispositivo está ligado corretamente.";
+            this.renderAlerta(true, "Erro ao encontrar dispositivo!", msg, "danger");
         });
     }
 
@@ -92,7 +92,7 @@ class ListSistemasComponent extends Component {
         }).catch((error) => {
             var msg = "Nenhum dispositivo com o IP " + ip + 
                 " foi encontrado. Verifique se o dispositivo está ligado corretamente.";
-            this.renderAlerta(true, "Erro ao adicionar dispositivo!", msg, "danger");
+            this.renderAlerta(true, "Erro ao encontrar dispositivo!", msg, "danger");
         });
     }
 
@@ -149,7 +149,7 @@ class ListSistemasComponent extends Component {
         }).catch((error) => {
             var msg = "Nenhum dispositivo com o IP " + sistemaSelecionado.ip + 
                 " foi encontrado. Verifique se o dispositivo está ligado corretamente.";
-            this.renderAlerta(true, "Erro ao adicionar dispositivo!", msg, "danger");
+            this.renderAlerta(true, "Erro ao encontrar dispositivo!", msg, "danger");
         });
     }
 
@@ -180,7 +180,7 @@ class ListSistemasComponent extends Component {
         }).catch((error) => {
             var msg = "Nenhum dispositivo com o IP " + ip + 
                 " foi encontrado. Verifique se o dispositivo está ligado corretamente.";
-            this.renderAlerta(true, "Erro ao adicionar dispositivo!", msg, "danger");
+            this.renderAlerta(true, "Erro ao encontrar dispositivo!", msg, "danger");
         });
     }
 
