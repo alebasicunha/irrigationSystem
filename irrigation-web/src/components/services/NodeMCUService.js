@@ -11,12 +11,14 @@ class NodeMCUService {
                     success: function (result) {
                         return result;
                     },
-                    error: function (result) {
-                        console.dir("Erro");
+                    error: function(error) {                        
+                        //alert('Erro');
+                        reject(error);
                     }
                 })    
             );
         });     
+        
     }
 
     regarManual(ip) {
@@ -28,9 +30,8 @@ class NodeMCUService {
                     success: function (result) {
                         return result;
                     },
-                    error: function (result) {
-                        console.dir("Erro");
-                    }
+                    error: function (error) {
+                        reject(error);                    }
                 })    
             );
         });     
@@ -47,9 +48,8 @@ class NodeMCUService {
                     success: function (result) {
                         return result;
                     },
-                    error: function (result) {
-                        console.dir("Erro");
-                    }
+                    error: function (error) {
+                        reject(error);                     }
                 })    
             );
         });     

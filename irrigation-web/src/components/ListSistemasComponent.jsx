@@ -9,6 +9,7 @@ import { ModalAdicionar } from './ModalAdicionar';
 
 class ListSistemasComponent extends Component {
 
+    //TODO deletar deve apagar todas as entradas daquele dispositivo.
     constructor(props) {
         super(props)
 
@@ -33,7 +34,7 @@ class ListSistemasComponent extends Component {
         this.renderModalEditar = this.renderModalEditar.bind(this);
         this.onSalvarModalEditar = this.onSalvarModalEditar.bind(this);
         this.renderModalGraficos = this.renderModalGraficos.bind(this);
-        this.onSalvarModalGraficos = this.onSalvarModalGraficos.bind(this);
+        this.onFecharModalGraficos = this.onFecharModalGraficos.bind(this);
         this.renderModalAdicionar = this.renderModalAdicionar.bind(this);
         this.onSalvarModalAdicionar = this.onSalvarModalAdicionar.bind(this);
     }
@@ -56,19 +57,6 @@ class ListSistemasComponent extends Component {
         this.renderModalAdicionar(true, tituloModal);
     }
 
-    salvarNovo(sistema) {
-        dbService.buscarPorMacAddress(sistema.macAddress).then((res) => {
-            if(!res.length === 0 || this.state.sistemas.length === 0) {
-                dbService.salvar(sistema).then(() => { 
-                    this.buscarTodos()
-                }); 
-            } else {                
-                let msg = "Já existe um dispositivo com o MacAddress: " + sistema.macAddress + ".";
-                this.renderAlerta(true, "Erro ao adicionar dispositivo!", msg, "danger");
-            }  
-        });
-    }
-
     //busca do esp8266 os valores atualizados e salva no banco uma nova entrada
     atualizarPorIp(ip) { 
         fwService.buscar(ip).then((res) => {
@@ -76,7 +64,10 @@ class ListSistemasComponent extends Component {
             resJson = {...resJson, dataLeitura: new Date().getTime()};           
             dbService.salvar(resJson).then(() => { 
                 this.buscarTodos()
-            });    
+            }).catch((error) => {
+                var msg = "Nenhum dispositivo com o IP " + ip + "foi encontrado. Verifique se o dispositivo está ligado corretamente.";
+                this.renderAlerta(true, "Erro ao adicionar dispositivo!", msg, "danger");
+            });
         });
     }
 
@@ -97,6 +88,10 @@ class ListSistemasComponent extends Component {
             }
             this.buscarTodos();
             document.getElementById(ip+'btn').blur();
+        }).catch((error) => {
+            var msg = "Nenhum dispositivo com o IP " + ip + 
+                " foi encontrado. Verifique se o dispositivo está ligado corretamente.";
+            this.renderAlerta(true, "Erro ao adicionar dispositivo!", msg, "danger");
         });
     }
 
@@ -143,13 +138,16 @@ class ListSistemasComponent extends Component {
         this.setState({sistemaSelecionado: sistema});
     }
 
-    onSalvarModalEditar(mostrar, sistemaSelecionado){        
+    onSalvarModalEditar(mostrar, sistemaSelecionado) {        
         this.setState({modalEditar: mostrar});
         this.setState({sistemaSelecionado: sistemaSelecionado});     
         fwService.editar(sistemaSelecionado.ip, sistemaSelecionado).then(() => {
                 this.atualizarPorIp(sistemaSelecionado.ip);
-        }); 
-        
+        }).catch((error) => {
+            var msg = "Nenhum dispositivo com o IP " + sistemaSelecionado.ip + 
+                " foi encontrado. Verifique se o dispositivo está ligado corretamente.";
+            this.renderAlerta(true, "Erro ao adicionar dispositivo!", msg, "danger");
+        });
     }
 
     renderModalGraficos(mostrar, titulo, sistema) {        
@@ -161,11 +159,11 @@ class ListSistemasComponent extends Component {
         }).then(() => this.setState({modalGraficos: mostrar}));
     }
 
-    onSalvarModalGraficos(mostrar) {       
+    onFecharModalGraficos(mostrar) {       
         this.setState({modalGraficos: mostrar});        
     }
 
-    renderModalAdicionar(mostrar, titulo, devices) {  
+    renderModalAdicionar(mostrar, titulo) {  
         this.setState({modalAdicionar: mostrar});      
         this.setState({tituloModal: titulo});
     }
@@ -176,7 +174,24 @@ class ListSistemasComponent extends Component {
             let resJson = JSON.parse(res);
             resJson = {...resJson, dataLeitura: new Date().getTime()};
             this.salvarNovo(resJson);         
-        }) 
+        }).catch((error) => {
+            var msg = "Nenhum dispositivo com o IP " + ip + 
+                " foi encontrado. Verifique se o dispositivo está ligado corretamente.";
+            this.renderAlerta(true, "Erro ao adicionar dispositivo!", msg, "danger");
+        });
+    }
+
+    salvarNovo(sistema) {
+        dbService.buscarPorMacAddress(sistema.macAddress).then((res) => {
+            if(!res.length === 0 || this.state.sistemas.length === 0) {
+                dbService.salvar(sistema).then(() => { 
+                    this.buscarTodos()
+                }); 
+            } else {                
+                let msg = "Já existe um dispositivo com o MacAddress: " + sistema.macAddress + ".";
+                this.renderAlerta(true, "Erro ao adicionar dispositivo!", msg, "danger");
+            }  
+        });
     }
 
     render() {
@@ -217,7 +232,7 @@ class ListSistemasComponent extends Component {
                 <ModalGrafico
                     visible={this.state.modalGraficos} 
                     titulo={this.state.tituloModal}    
-                    callback={this.onSalvarModalGraficos}
+                    callback={this.onFecharModalGraficos}
                     sistemas={this.state.sistemaSelecionado}
                 />
                 <ModalAdicionar
