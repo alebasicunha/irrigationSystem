@@ -31,7 +31,8 @@ class NodeMCUService {
                         return result;
                     },
                     error: function (error) {
-                        reject(error);                    }
+                        reject(error);                    
+                    }
                 })    
             );
         });     
@@ -49,7 +50,8 @@ class NodeMCUService {
                         return result;
                     },
                     error: function (error) {
-                        reject(error);                     }
+                        reject(error);                     
+                    }
                 })    
             );
         });     
