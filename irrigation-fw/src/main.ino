@@ -13,8 +13,8 @@
 
 unsigned long lastTime = 0;
 //1h = 3600000ms
-//10min = 600000
-unsigned long timerDelay = 600000;
+//10min = 600000ms
+unsigned long timerDelay = 60000;
 int httpResponseCode = 0;
 
 //login e senha do wi-fi
@@ -57,6 +57,9 @@ void setup()
   Serial.begin(9600);
   delay(10);
 
+  // Initialize the LED pin as an output
+  pinMode(relePin, OUTPUT);
+  
   conectarWiFi();
 
   //Especifica qual funcao sera chamada em cada request
@@ -75,7 +78,7 @@ void loop()
 {
   //Lida com os requests dos clientes
   server.handleClient(); 
-  postOnClient();
+  postOnBD();
   regar();
   delay(1000);
 }
@@ -98,6 +101,7 @@ void conectarWiFi() {
 }
 
 void inicializaEstruturaDados() {
+  Serial.println("Inicializando estrutura!");
   float h = lerSensor();
   
   dadosDoSistema = {
@@ -205,7 +209,11 @@ void receberDadosAtualizados() {
   Se houver erro durante o envio, 
   reenvia enquanto o codigo de resposta nao for de SUCESSO
 */
-void postOnClient() {
+void postOnBD() {
+  if (status == REGANDO) {
+    return;
+  }
+
   if (((millis() - lastTime) > (dadosDoSistema.periodoMedicao * timerDelay)) 
         || (httpResponseCode < 0) 
         || (status == FIM)) {
@@ -228,6 +236,7 @@ void postOnClient() {
 
       Serial.print("HTTP Response code: ");
       Serial.println(httpResponseCode);
+      Serial.println("\n");
       http.end();
 
 
@@ -241,10 +250,10 @@ void postOnClient() {
 
 void regar() {
   if(status == REGANDO) {
-    Serial.println("Ligando motor");
+    Serial.println("\nLigando motor");
     digitalWrite(relePin, HIGH);
     delay(1000);                
-    Serial.println("Desligando motor");
+    Serial.println("Desligando motor\n");
     digitalWrite(relePin, LOW);
     verificarNecessidadeDeRegar();
   }
@@ -276,11 +285,11 @@ float lerSensor() {
   
   Serial.print("Umidade atual: ");
   dadosDoSistema.umidadeAtual = h;
-  Serial.println(dadosDoSistema.umidadeAtual);
+  Serial.print(dadosDoSistema.umidadeAtual);
+  Serial.println("%");
   return h;
 }
 
-//adicionar o nome
 String toJson() {
   String abreJson = "{";
   String mac = "\"macAddress\":\"" + dadosDoSistema.macAddr + "\"";
